@@ -6,6 +6,7 @@ contract Multisig {
     uint8 public quorum;
     uint8 public noOfValidSigners;
     uint256 public txCount;
+    uint256 public quorumUpdateCount;
 
     struct Transaction {
         uint256 id;
@@ -19,10 +20,21 @@ contract Multisig {
         address[] transactionSigners;
     }
 
+    struct QuorumUpdate {
+        uint256 id;
+        uint8 newQuorum;
+        bool isCompleted;
+        uint256 noOfApproval;
+        address[] signers;
+    }
+
     mapping(address => bool) isValidSigner;
     mapping(uint => Transaction) transactions; // txId -> Transaction
     // signer -> transactionId -> bool (checking if an address has signed)
     mapping(address => mapping(uint256 => bool)) hasSigned;
+
+     mapping(uint => QuorumUpdate) quorumUpdates; // quorumUpdateId -> QuorumUpdate
+     mapping(address => mapping(uint256 => bool)) hasSignedQuorumUpdate; // signer -> quorumUpdateId -> bool
 
     constructor(uint8 _quorum, address[] memory _validSigners) {
         require(_validSigners.length > 1, "few valid signers");
@@ -106,6 +118,37 @@ contract Multisig {
         require(_newQuorum > 1, "Quorum must be greater than 1");
         require(_newQuorum <= noOfValidSigners, "New quorum cannot be greater than the number of valid signers");
 
+        uint256 _quorumUpdateId = quorumUpdateCount + 1;
+        QuorumUpdate storage qUpdate = quorumUpdates[_quorumUpdateId];
+        
+        qUpdate.id = _quorumUpdateId;
+        qUpdate.newQuorum = _newQuorum;
+        qUpdate.noOfApproval = 1;
+        qUpdate.signers.push(msg.sender);
+
+        hasSignedQuorumUpdate[msg.sender][_quorumUpdateId] = true;
+        quorumUpdateCount += 1;
+
         quorum = _newQuorum;
+    }
+
+    function approveQuorumUpdate(uint256 _quorumUpdateId) external {
+        QuorumUpdate storage qUpdate = quorumUpdates[_quorumUpdateId];
+
+        require(qUpdate.id != 0, "invalid quorum update id");
+        require(!qUpdate.isCompleted, "quorum update already completed");
+        require(qUpdate.noOfApproval < quorum, "quorum update already has enough approvals");
+
+        require(isValidSigner[msg.sender], "not a valid signer");
+        require(!hasSignedQuorumUpdate[msg.sender][_quorumUpdateId], "can't approve twice");
+
+        hasSignedQuorumUpdate[msg.sender][_quorumUpdateId] = true;
+        qUpdate.noOfApproval += 1;
+        qUpdate.signers.push(msg.sender);
+
+        if (qUpdate.noOfApproval == quorum) {
+            quorum = qUpdate.newQuorum;
+            qUpdate.isCompleted = true;
+        }
     }
 }
