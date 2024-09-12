@@ -15,36 +15,34 @@ async function main() {
   );
 
   const validSigners = [
+    "0x80bac8C84ef572c9b89F6501a03eA4685D3699D3",
     "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2",
     "0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db",
     "0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB",
   ];
 
-  //   //Create Multisig Wallet
-  //   const createMultsigWallet = await multisigFactoryWallet.createMultisigWallet(
-  //     3,
-  //     validSigners
-  //   );
-  //   const wallet = await createMultsigWallet.wait();
-  //   console.log("Create clone wallet:", wallet);
-  //   const multisigWalletClone = await multisigFactoryWallet.getMultiSigClones();
-  //   console.log("Clone addresses: ", multisigWalletClone);
-
-  //   interact with the clone address
-  const cloneAddr = "0x1D9c42e2830d3370d89a40D2Fe1f203eADB3563c";
+  // //Create Multisig Wallet
+  // const createMultsigWallet = await multisigFactoryWallet.createMultisigWallet(
+  //   3,
+  //   validSigners
+  // );
+  // const wallet = await createMultsigWallet.wait();
+  // console.log("Create clone wallet:", wallet);
+  // const multisigWalletClone = await multisigFactoryWallet.getMultiSigClones();
+  // console.log("Clone addresses: ", multisigWalletClone);
 
   const multisigWallet = await ethers.getContractAt(
     "Multisig",
-    multisigWalletAddr
+    "0x80bac8C84ef572c9b89F6501a03eA4685D3699D3"
   );
   // transfer parameters
-  const amountToTransfer = ethers.parseUnits("0.01", 18);
-  const receipientAddr = "0xa34aaf88DE4767D46e374112a6D8F333b39C6246";
+  const amountToTransfer = ethers.parseUnits("1", 18);
+  const recipientAddr = "0xa34aaf88DE4767D46e374112a6D8F333b39C6246";
 
   // Initiate transfer from multisig wallet
   const transferTx = await multisigWallet.transfer(
     amountToTransfer,
-    receipientAddr,
+    recipientAddr,
     ercTokenAddr
   );
   console.log("Transfer from multisig wallet initiated: ", transferTx);
