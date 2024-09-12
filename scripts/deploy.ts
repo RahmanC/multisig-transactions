@@ -1,40 +1,47 @@
 import { ethers } from "hardhat";
+const hre = require("hardhat");
 
 async function main() {
-  const [owner] = await ethers.getSigners();
+  const [owner, address1, address2, address3] = await hre.ethers.getSigners();
 
-  //   console.log(`owner: ${owner.address}`);
+  // Create valid signers addresses
+  const validSigners = [
+    owner.address,
+    address1.address,
+    address2.address,
+    address3.address,
+  ];
 
   // Get the contract at the specified address
-  const ercTokenAddr = "0xcf9203f511B680eA79807B740033BBdD62C2f284";
-  const multisigWalletAddr = "0x2992029407938Fe20D5568C74EaB9A469FD45BaC";
+  const ercTokenAddr = "0xa5D3b3A71cEe86107a097EA1d267EB2aAe37f202";
+  const multisigWalletAddr = "0x9a12Df38636155eb25Cde2321097aE659fE27d24";
 
   const multisigFactoryWallet = await ethers.getContractAt(
     "MultisigFactory",
     multisigWalletAddr
   );
 
-  const validSigners = [
-    "0x80bac8C84ef572c9b89F6501a03eA4685D3699D3",
-    "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2",
-    "0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db",
-    "0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB",
-  ];
-
-  // //Create Multisig Wallet
-  // const createMultsigWallet = await multisigFactoryWallet.createMultisigWallet(
-  //   3,
-  //   validSigners
-  // );
-  // const wallet = await createMultsigWallet.wait();
-  // console.log("Create clone wallet:", wallet);
-  // const multisigWalletClone = await multisigFactoryWallet.getMultiSigClones();
-  // console.log("Clone addresses: ", multisigWalletClone);
-
-  const multisigWallet = await ethers.getContractAt(
-    "Multisig",
-    "0x80bac8C84ef572c9b89F6501a03eA4685D3699D3"
+  //Create Multisig Wallet
+  const createMultsigWallet = await multisigFactoryWallet.createMultisigWallet(
+    3,
+    validSigners
   );
+
+  const wallet = await createMultsigWallet.wait();
+  console.log("Create clone wallet:", wallet);
+
+  const multisigWalletClone = await multisigFactoryWallet.getMultiSigClones();
+
+  const clonedWallet = multisigWalletClone[0];
+
+  //Transfer token to clone address
+  const ercToken = await ethers.getContractAt("ERC20Token", ercTokenAddr);
+  const amount = ethers.parseUnits("2", 18);
+  const trToken = await ercToken.transfer(clonedWallet, amount);
+  trToken.wait();
+
+  const multisigWallet = await ethers.getContractAt("Multisig", clonedWallet);
+
   // transfer parameters
   const amountToTransfer = ethers.parseUnits("1", 18);
   const recipientAddr = "0xa34aaf88DE4767D46e374112a6D8F333b39C6246";
@@ -45,7 +52,7 @@ async function main() {
     recipientAddr,
     ercTokenAddr
   );
-  console.log("Transfer from multisig wallet initiated: ", transferTx);
+  console.log("Transfer from mulisig: ", transferTx);
 }
 
 main()

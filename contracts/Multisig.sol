@@ -102,42 +102,42 @@ contract Multisig {
     }
 
      function updateQuorum(uint8 _newQuorum) external {
-require(_newQuorum > 1, "quorum too small");
-    require(_newQuorum <= noOfValidSigners, "quorum greater than valid signers");
-    require(isValidSigner[msg.sender], "only valid signers can propose quorum update");
+        require(_newQuorum > 1, "quorum too small");
+        require(_newQuorum <= noOfValidSigners, "quorum greater than valid signers");
+        require(isValidSigner[msg.sender], "only valid signers can propose quorum update");
 
-    // Create a new transaction for updating the quorum
-    uint256 _txId = txCount + 1;
-    Transaction storage trx = transactions[_txId];
-    
-    trx.id = _txId;
-    trx.amount = 0; // No token transfer involved
-    trx.recipient = address(this); // To signify it's a quorum update
-    trx.sender = msg.sender;
-    trx.timestamp = block.timestamp;
-    trx.tokenAddress = address(0); // No token address involved
-    trx.noOfApproval += 1;
-    trx.transactionSigners.push(msg.sender);
-    hasSigned[msg.sender][_txId] = true;
+        // Create a new transaction for updating the quorum
+        uint256 _txId = txCount + 1;
+        Transaction storage trx = transactions[_txId];
+        
+        trx.id = _txId;
+        trx.amount = 0; // No token transfer involved
+        trx.recipient = address(this); // To signify it's a quorum update
+        trx.sender = msg.sender;
+        trx.timestamp = block.timestamp;
+        trx.tokenAddress = address(0); // No token address involved
+        trx.noOfApproval += 1;
+        trx.transactionSigners.push(msg.sender);
+        hasSigned[msg.sender][_txId] = true;
 
-    txCount += 1;
+        txCount += 1;
     }
 
     function approveQuorumUpdate(uint256 _txId, uint8 _newQuorum) external {
-    Transaction storage trx = transactions[_txId];
-    require(trx.id != 0, "invalid tx id");
-    require(trx.recipient == address(this), "not a quorum update transaction");
-    require(trx.noOfApproval < quorum, "approvals already reached");
-    require(isValidSigner[msg.sender], "only valid signers can approve quorum update");
-    require(!hasSigned[msg.sender][_txId], "can't sign twice");
+        Transaction storage trx = transactions[_txId];
+        require(trx.id != 0, "invalid tx id");
+        require(trx.recipient == address(this), "not a quorum update transaction");
+        require(trx.noOfApproval < quorum, "approvals already reached");
+        require(isValidSigner[msg.sender], "only valid signers can approve quorum update");
+        require(!hasSigned[msg.sender][_txId], "can't sign twice");
 
-    hasSigned[msg.sender][_txId] = true;
-    trx.noOfApproval += 1;
-    trx.transactionSigners.push(msg.sender);
+        hasSigned[msg.sender][_txId] = true;
+        trx.noOfApproval += 1;
+        trx.transactionSigners.push(msg.sender);
 
-    if (trx.noOfApproval == quorum) {
-        quorum = _newQuorum; // Update the quorum
-        trx.isCompleted = true; // Mark the transaction as completed
-    }
+        if (trx.noOfApproval == quorum) {
+            quorum = _newQuorum; // Update the quorum
+            trx.isCompleted = true; // Mark the transaction as completed
+        }
 }
 }
