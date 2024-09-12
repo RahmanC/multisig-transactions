@@ -20,31 +20,34 @@ async function main() {
     "0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB",
   ];
 
-  //Create Multisig Wallet
-  const createMultsigWallet = await multisigFactoryWallet.createMultisigWallet(
-    3,
-    validSigners
+  //   //Create Multisig Wallet
+  //   const createMultsigWallet = await multisigFactoryWallet.createMultisigWallet(
+  //     3,
+  //     validSigners
+  //   );
+  //   const wallet = await createMultsigWallet.wait();
+  //   console.log("Create clone wallet:", wallet);
+  //   const multisigWalletClone = await multisigFactoryWallet.getMultiSigClones();
+  //   console.log("Clone addresses: ", multisigWalletClone);
+
+  //   interact with the clone address
+  const cloneAddr = "0x1D9c42e2830d3370d89a40D2Fe1f203eADB3563c";
+
+  const multisigWallet = await ethers.getContractAt(
+    "Multisig",
+    multisigWalletAddr
   );
-  const wallet = await createMultsigWallet.wait();
-  console.log("Create clone wallet:", wallet);
-  const multisigWalletClone = await multisigFactoryWallet.getMultiSigClones();
-  console.log("Clone addresses: ", multisigWalletClone);
+  // transfer parameters
+  const amountToTransfer = ethers.parseUnits("0.01", 18);
+  const receipientAddr = "0xa34aaf88DE4767D46e374112a6D8F333b39C6246";
 
-  //   const multisigWallet = await ethers.getContractAt(
-  //     "Multisig",
-  //     multisigWalletAddr
-  //   );
-  //   // transfer parameters
-  //   const amountToTransfer = ethers.parseUnits("0.0001", 18);
-  //   const receipientAddr = "0xa34aaf88DE4767D46e374112a6D8F333b39C6246";
-
-  //   // Initiate transfer from multisig wallet
-  //   const transferTx = await multisigWallet.transfer(
-  //     amountToTransfer,
-  //     receipientAddr,
-  //     ercTokenAddr
-  //   );
-  //   console.log("Transfer from multisig wallet initiated: ", transferTx);
+  // Initiate transfer from multisig wallet
+  const transferTx = await multisigWallet.transfer(
+    amountToTransfer,
+    receipientAddr,
+    ercTokenAddr
+  );
+  console.log("Transfer from multisig wallet initiated: ", transferTx);
 }
 
 main()
